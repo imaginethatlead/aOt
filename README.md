@@ -1,14 +1,3 @@
----
-title: Avocado On Toast
-emoji: 🥑
-colorFrom: green
-colorTo: gray
-sdk: gradio
-sdk_version: "4.44.1"
-app_file: app.py
-pinned: false
----
-
 # Avocado On Toast
 
 Gradio Space that standardizes uploaded videos with ffmpeg, runs AVoCaDO, and
