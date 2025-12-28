@@ -1,38 +1,53 @@
-# Avocado On Toast
+# Runpod Avocado Worker
 
-Gradio Space that standardizes uploaded videos with ffmpeg, runs AVoCaDO, and
-writes JSONL outputs into a run-labeled dataset folder.
+This folder is a standalone worker repo for Runpod Serverless.
+It downloads a video URL, runs Avocado (Qwen2.5-Omni), and returns caption text.
 
-## Usage (Hugging Face Space)
+## Input contract
 
-1. Create a new Gradio Space and connect it to this repo.
-2. Ensure `ffmpeg` and AVoCaDO are available in the Space image.
-3. Set `AVOCADO_CMD` as a Space secret or enter it in the UI textbox.
-   - The command must accept `{input}` and `{output}` placeholders.
-   - Example:
-     ```bash
-     python -m avocado_captioner.cli --input {input} --output {output}
-     ```
-4. Launch the Space, upload videos, and click **Process videos**.
+Runpod input JSON:
 
-Outputs are written to:
-
-```
-/data/dataset/runs/<run_label>/annotations.jsonl
+```json
+{
+  "video_url": "https://.../video.mp4",
+  "model_id": "Qwen/Qwen2.5-Omni-7B",
+  "prompt": "Give a detailed audio-visual analysis of this video."
+}
 ```
 
-Each run produces `annotations.jsonl` and `manifest.json` under the run label.
+Only `video_url` is required.
 
-## Configuration
+## Output contract
 
-- `DATA_ROOT` (default: `/data`) controls the root folder for uploads and output.
-- `AVOCADO_CMD` defines the AVoCaDO command used during processing.
+```json
+{
+  "text": "caption text",
+  "model_id": "Qwen/Qwen2.5-Omni-7B",
+  "prompt": "Give a detailed audio-visual analysis of this video.",
+  "timing_s": 12.345
+}
+```
 
-## Notes
+Runpod wraps this under `output`.
 
-The standardization step uses:
-- 720p scaling (`scale=-2:720`)
-- H.264 video (`libx264`, `crf=23`)
-- AAC audio (`128k`)
+## Build and push
 
-Adjust these settings in `app.py` if you want a different quality/compute tradeoff.
+Example with Docker Hub:
+
+```bash
+docker build -t <docker-user>/aot-avocado-worker:latest .
+docker push <docker-user>/aot-avocado-worker:latest
+```
+
+Then in Runpod:
+- Container image: `<docker-user>/aot-avocado-worker:latest`
+- Container start command: leave blank (Dockerfile sets CMD)
+
+## Environment variables
+
+- `MODEL_ID` (default: `Qwen/Qwen2.5-Omni-7B`)
+- `DEFAULT_PROMPT` (default: detailed A/V prompt)
+- `USE_AUDIO_IN_VIDEO` (default: true)
+- `MAX_NEW_TOKENS` (default: 2048)
+- `VIDEO_MAX_PIXELS` (default: 20070400)
+- `ATTN_IMPL` (optional, e.g. `flash_attention_2`)
