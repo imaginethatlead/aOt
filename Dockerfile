@@ -1,4 +1,4 @@
-FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0
+FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-runtime
 
 WORKDIR /app
 
@@ -15,5 +15,19 @@ ENV MODEL_ID=Qwen/Qwen2.5-Omni-7B
 ENV USE_AUDIO_IN_VIDEO=true
 ENV MAX_NEW_TOKENS=2048
 ENV VIDEO_MAX_PIXELS=20070400
+
+# Optional: bake the model into the image to avoid runtime downloads.
+# Set HF_TOKEN as a build arg in the Runpod UI.
+ARG HF_TOKEN
+ENV HF_TOKEN=${HF_TOKEN}
+ENV HF_HOME=/models/hf
+RUN if [ -n \"$HF_TOKEN\" ]; then \\
+    python - <<'PY' \\
+from huggingface_hub import snapshot_download \\
+import os \\
+model_id = os.environ.get(\"MODEL_ID\", \"Qwen/Qwen2.5-Omni-7B\") \\
+snapshot_download(repo_id=model_id, local_dir=os.environ.get(\"HF_HOME\", \"/models/hf\"), local_dir_use_symlinks=False) \\
+PY \\
+; else echo \"HF_TOKEN not set; model will download at runtime.\"; fi
 
 CMD ["python", "-u", "/app/handler.py"]
