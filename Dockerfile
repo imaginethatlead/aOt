@@ -21,13 +21,15 @@ ENV VIDEO_MAX_PIXELS=20070400
 ARG HF_TOKEN
 ENV HF_TOKEN=${HF_TOKEN}
 ENV HF_HOME=/models/hf
-RUN if [ -n \"$HF_TOKEN\" ]; then \\
-    python - <<'PY' \\
-from huggingface_hub import snapshot_download \\
-import os \\
-model_id = os.environ.get(\"MODEL_ID\", \"Qwen/Qwen2.5-Omni-7B\") \\
-snapshot_download(repo_id=model_id, local_dir=os.environ.get(\"HF_HOME\", \"/models/hf\"), local_dir_use_symlinks=False) \\
-PY \\
-; else echo \"HF_TOKEN not set; model will download at runtime.\"; fi
+RUN if [ -n "$HF_TOKEN" ]; then \
+    printf '%s\n' \
+    'from huggingface_hub import snapshot_download' \
+    'import os' \
+    'model_id = os.environ.get("MODEL_ID", "Qwen/Qwen2.5-Omni-7B")' \
+    'snapshot_download(repo_id=model_id, local_dir=os.environ.get("HF_HOME", "/models/hf"), local_dir_use_symlinks=False)' \
+    > /tmp/download_model.py && \
+    python /tmp/download_model.py && \
+    rm /tmp/download_model.py; \
+  else echo "HF_TOKEN not set; model will download at runtime."; fi
 
 CMD ["python", "-u", "/app/handler.py"]
