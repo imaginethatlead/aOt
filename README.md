@@ -43,6 +43,16 @@ Then in Runpod:
 - Container image: `<docker-user>/aot-avocado-worker:latest`
 - Container start command: leave blank (Dockerfile sets CMD)
 
+## Baking the model
+
+To bake the model into the image, pass a build arg:
+
+```bash
+docker build --build-arg HF_TOKEN=YOUR_TOKEN -t <docker-user>/aot-avocado-worker:latest .
+```
+
+If `HF_TOKEN` is not set, the model will download at runtime.
+
 ## Environment variables
 
 - `MODEL_ID` (default: `Qwen/Qwen2.5-Omni-7B`)
