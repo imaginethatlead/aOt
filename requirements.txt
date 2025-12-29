@@ -1,8 +1,8 @@
-accelerate==0.34.1
+accelerate==1.12.0
 decord==0.6.0
 huggingface_hub==0.33.0
 qwen-omni-utils==0.0.8
 qwen-vl-utils==0.0.8
 requests==2.32.3
 runpod==1.7.0
-transformers==4.52.3
+transformers==4.57.3
